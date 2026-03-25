@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adbudget}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-adbudget}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-adbudget}", "-d", "${POSTGRES_DB:-adbudget}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  web:
+    build:
+      context: ./backend
+    entrypoint: ./entrypoint.sh
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  celery-worker:
+    build:
+      context: ./backend
+    entrypoint: ./entrypoint-worker.sh
+    command: celery -A app.tasks.celery_app worker --loglevel=info
+    env_file: .env
+    depends_on:
+      web:
+        condition: service_healthy
+
+  celery-beat:
+    build:
+      context: ./backend
+    entrypoint: ./entrypoint-worker.sh
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - web
+
+volumes:
+  postgres-data:
+  redis-data:
