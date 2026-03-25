@@ -24,5 +24,5 @@ def setup_logging() -> None:
     )
 
 
-def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
+def get_logger(name=None):
     return structlog.get_logger(name)
