@@ -35,7 +35,7 @@ celery_app.conf.beat_schedule = {
     },
     "simulator-tick": {
         "task": "app.tasks.simulation.simulator_tick",
-        "schedule": 60.0,  # every 60 seconds (split 02)
+        "schedule": 2.0,  # every 2 seconds for smooth WebSocket updates
     },
     "daily-report": {
         "task": "app.tasks.reporting.generate_daily_report",
