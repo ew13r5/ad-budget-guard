@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     forecast_lookback_hours: int = 4
     anomaly_lookback_days: int = 7
     monitoring_lock_ttl: int = 280
+    # Alerts
+    alert_cooldown_seconds: int = 300
+    telegram_bot_token: str = ""
+    # Reports
+    report_logo_path: str = ""
+    report_agency_name: str = "Ad Budget Guard"
+    report_storage_dir: str = "/app/reports"
+    # Google Sheets
+    google_service_account_json: str = ""
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

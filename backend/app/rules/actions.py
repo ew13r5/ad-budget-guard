@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.alerts.alert_manager import AlertManager
 from app.models.alert_log import AlertChannel, AlertLog, AlertType
 from app.models.campaign import Campaign, CampaignStatus
 from app.models.pause_log import PauseLog
@@ -16,31 +17,11 @@ from app.models.rule_evaluation import EvaluationResult, RuleEvaluation
 logger = logging.getLogger(__name__)
 
 
-class AlertService:
-    """Base alert service interface."""
-
-    def send_alert(
-        self,
-        db: Session,
-        account_id: UUID,
-        alert_type: AlertType,
-        message: str,
-    ) -> None:
-        alert = AlertLog(
-            account_id=account_id,
-            alert_type=alert_type,
-            channel=AlertChannel.in_app,
-            message=message,
-        )
-        db.add(alert)
-        db.flush()
-
-
 class ActionExecutor:
     """Executes pause actions and logs results."""
 
-    def __init__(self, alert_service: AlertService | None = None):
-        self._alert_service = alert_service or AlertService()
+    def __init__(self, alert_service: AlertManager | None = None):
+        self._alert_service = alert_service or AlertManager()
 
     def execute_soft_pause(
         self,

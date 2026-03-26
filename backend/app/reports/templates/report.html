@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ report.report_type|title }} Report — {{ report.account_name }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; font-size: 12px; padding: 30px; }
+  h1 { font-size: 22px; color: #1a1a1a; margin-bottom: 5px; }
+  h2 { font-size: 16px; color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+  .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
+  .header .agency { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 2px; }
+  .header .period { font-size: 13px; color: #555; margin-top: 3px; }
+
+  .summary-cards { display: flex; gap: 15px; margin-bottom: 20px; }
+  .card { flex: 1; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; text-align: center; }
+  .card .value { font-size: 20px; font-weight: bold; color: #2c3e50; }
+  .card .label { font-size: 10px; color: #777; text-transform: uppercase; margin-top: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+  th { background: #3498db; color: white; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  td { padding: 7px 10px; border-bottom: 1px solid #eee; font-size: 11px; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  .num { text-align: right; }
+
+  .chart-container { text-align: center; margin: 15px 0; }
+  svg text { font-size: 9px; fill: #666; }
+
+  .incidents { margin-top: 15px; }
+  .incident { padding: 6px 10px; border-left: 3px solid #e74c3c; background: #fdf2f2; margin-bottom: 5px; font-size: 11px; }
+  .incident.warning { border-color: #f39c12; background: #fef9e7; }
+  .incident.info { border-color: #3498db; background: #eaf2f8; }
+  .incident .ts { color: #999; font-size: 10px; }
+
+  .footer { margin-top: 30px; text-align: center; font-size: 9px; color: #aaa; border-top: 1px solid #eee; padding-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="agency">{{ agency_name }}</div>
+  <h1>{{ report.report_type|title }} Spend Report</h1>
+  <div class="period">
+    {{ report.account_name }} &mdash;
+    {{ report.date_from.strftime('%B %d, %Y') }}
+    {% if report.date_from != report.date_to %}
+      to {{ report.date_to.strftime('%B %d, %Y') }}
+    {% endif %}
+  </div>
+</div>
+
+<div class="summary-cards">
+  <div class="card">
+    <div class="value">{{ report.currency }} {{ "{:,.2f}".format(report.total_spend) }}</div>
+    <div class="label">Total Spend</div>
+  </div>
+  <div class="card">
+    <div class="value">{{ report.campaigns|length }}</div>
+    <div class="label">Campaigns</div>
+  </div>
+  <div class="card">
+    <div class="value">{{ report.incidents|length }}</div>
+    <div class="label">Incidents</div>
+  </div>
+  {% if report.daily_budget_total %}
+  <div class="card">
+    <div class="value">{{ report.currency }} {{ "{:,.2f}".format(report.daily_budget_total) }}</div>
+    <div class="label">Daily Budget</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if chart_bars %}
+<h2>Daily Spend</h2>
+<div class="chart-container">
+  <svg width="{{ chart_width + 20 }}" height="250" viewBox="0 0 {{ chart_width + 20 }} 250">
+    {% for bar in chart_bars %}
+    <rect x="{{ bar.x + 10 }}" y="{{ bar.y + 10 }}" width="{{ bar.width }}" height="{{ bar.height }}"
+          fill="#3498db" rx="2" />
+    <text x="{{ bar.x + 10 + bar.width / 2 }}" y="{{ bar.y + 5 }}" text-anchor="middle">{{ bar.spend }}</text>
+    <text x="{{ bar.x + 10 + bar.width / 2 }}" y="240" text-anchor="middle">{{ bar.label }}</text>
+    {% endfor %}
+  </svg>
+</div>
+{% endif %}
+
+{% if report.campaigns %}
+<h2>Campaign Breakdown</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Campaign</th>
+      <th class="num">Spend</th>
+      <th class="num">Daily Budget</th>
+      <th class="num">Utilization</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in report.campaigns %}
+    <tr>
+      <td>{{ c.campaign_name }}</td>
+      <td class="num">{{ "{:,.2f}".format(c.spend) }}</td>
+      <td class="num">{% if c.daily_budget %}{{ "{:,.2f}".format(c.daily_budget) }}{% else %}&mdash;{% endif %}</td>
+      <td class="num">{% if c.utilization_pct %}{{ c.utilization_pct }}%{% else %}&mdash;{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if report.incidents %}
+<h2>Incidents</h2>
+<div class="incidents">
+  {% for inc in report.incidents %}
+  <div class="incident {{ inc.severity }}">
+    <span class="ts">{{ inc.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+    &mdash; <strong>{{ inc.alert_type }}</strong>: {{ inc.message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="footer">
+  Generated {{ report.generated_at.strftime('%Y-%m-%d %H:%M UTC') }} by {{ agency_name }}
+</div>
+
+</body>
+</html>

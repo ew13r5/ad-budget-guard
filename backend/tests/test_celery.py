@@ -25,6 +25,9 @@ class TestBeatSchedule:
             "token-health-check",
             "simulator-tick",
             "daily-report",
+            "weekly-report",
+            "monthly-report",
+            "cleanup-old-reports",
             "auto-resume-daily",
         }
         assert expected_keys == set(schedule.keys())

@@ -36,13 +36,14 @@ class TestModelImports:
         assert AlertLog.__tablename__ == "alerts_log"
         assert SimulationState.__tablename__ == "simulation_states"
 
-    def test_base_has_10_tables(self):
+    def test_base_has_all_tables(self):
         from app.models import Base
         tables = Base.metadata.tables
         expected = {
             "users", "ad_accounts", "user_accounts", "campaigns",
             "spend_snapshots", "budget_rules", "rule_evaluations",
-            "pause_log", "alerts_log", "simulation_states",
+            "pause_log", "alerts_log", "alert_configs", "reports",
+            "simulation_states", "simulation_log",
         }
         assert expected == set(tables.keys())
 

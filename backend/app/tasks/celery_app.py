@@ -39,7 +39,19 @@ celery_app.conf.beat_schedule = {
     },
     "daily-report": {
         "task": "app.tasks.reporting.generate_daily_report",
-        "schedule": crontab(hour=8, minute=0),  # daily 08:00 UTC (split 05)
+        "schedule": crontab(hour=8, minute=0),  # daily 08:00 UTC
+    },
+    "weekly-report": {
+        "task": "app.tasks.reporting.generate_weekly_report",
+        "schedule": crontab(hour=9, minute=0, day_of_week="monday"),  # Monday 09:00 UTC
+    },
+    "monthly-report": {
+        "task": "app.tasks.reporting.generate_monthly_report",
+        "schedule": crontab(hour=9, minute=0, day_of_month="1"),  # 1st of month 09:00 UTC
+    },
+    "cleanup-old-reports": {
+        "task": "app.tasks.reporting.cleanup_old_reports",
+        "schedule": crontab(hour=4, minute=0, day_of_week="sunday"),  # Sunday 04:00 UTC
     },
     "auto-resume-daily": {
         "task": "app.tasks.auto_resume.auto_resume_paused",

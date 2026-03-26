@@ -1,13 +1,14 @@
 """Tests for ActionExecutor."""
 from decimal import Decimal
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
 from app.models.budget_rule import RuleAction, RuleType
-from app.rules.actions import ActionExecutor, AlertService
+from app.alerts.alert_manager import AlertManager
+from app.rules.actions import ActionExecutor
 
 
 def _make_rule(**kwargs):
@@ -24,11 +25,28 @@ def _make_rule(**kwargs):
     return SimpleNamespace(**defaults)
 
 
+def _make_mock_db(campaign_results=None):
+    """Create a mock DB that handles both Campaign and AlertConfig queries."""
+    from app.models.alert_config import AlertConfig
+    from app.models.campaign import Campaign
+
+    db = MagicMock()
+
+    def _query_side_effect(model):
+        q = MagicMock()
+        if model is Campaign and campaign_results is not None:
+            q.filter.return_value.all.return_value = campaign_results
+        else:
+            q.filter.return_value.all.return_value = []
+        return q
+
+    db.query.side_effect = _query_side_effect
+    return db
+
+
 @pytest.fixture
 def mock_db():
-    db = MagicMock()
-    db.query.return_value.filter.return_value.all.return_value = []
-    return db
+    return _make_mock_db()
 
 
 @pytest.fixture
@@ -40,7 +58,7 @@ def mock_provider():
 
 @pytest.fixture
 def alert_service():
-    return AlertService()
+    return AlertManager()
 
 
 @pytest.fixture
@@ -72,10 +90,11 @@ class TestSoftPause:
         args = mock_db.add.call_args_list
         assert len(args) >= 1
 
-    def test_no_pause_log_on_failure(self, executor, mock_db):
+    def test_no_pause_log_on_failure(self, executor):
         provider = MagicMock()
         provider.pause_campaign.side_effect = Exception("API error")
         rule = _make_rule()
+        mock_db = _make_mock_db()
 
         result = executor.execute_soft_pause(provider, uuid4(), rule, Decimal("220"), mock_db)
 
@@ -87,7 +106,7 @@ class TestSoftPause:
 
 
 class TestHardPause:
-    def test_pauses_all_campaigns(self, executor, mock_provider, mock_db):
+    def test_pauses_all_campaigns(self, executor, mock_provider):
         from app.models.campaign import CampaignStatus
 
         campaigns = [
@@ -95,7 +114,7 @@ class TestHardPause:
             SimpleNamespace(id=uuid4(), status=CampaignStatus.ACTIVE),
             SimpleNamespace(id=uuid4(), status=CampaignStatus.ACTIVE),
         ]
-        mock_db.query.return_value.filter.return_value.all.return_value = campaigns
+        mock_db = _make_mock_db(campaign_results=campaigns)
 
         rule = _make_rule(action=RuleAction.hard_pause)
         count = executor.execute_hard_pause(mock_provider, rule.account_id, rule, Decimal("900"), mock_db)
@@ -103,14 +122,14 @@ class TestHardPause:
         assert count == 3
         assert mock_provider.pause_campaign.call_count == 3
 
-    def test_continues_on_single_failure(self, executor, mock_db):
+    def test_continues_on_single_failure(self, executor):
         from app.models.campaign import CampaignStatus
 
         campaigns = [
             SimpleNamespace(id=uuid4(), status=CampaignStatus.ACTIVE),
             SimpleNamespace(id=uuid4(), status=CampaignStatus.ACTIVE),
         ]
-        mock_db.query.return_value.filter.return_value.all.return_value = campaigns
+        mock_db = _make_mock_db(campaign_results=campaigns)
 
         provider = MagicMock()
         provider.pause_campaign.side_effect = [Exception("fail"), None]

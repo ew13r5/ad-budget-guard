@@ -4,7 +4,7 @@ import enum
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Index, Text, func
+from sqlalchemy import Boolean, Enum, ForeignKey, Index, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -34,4 +34,5 @@ class AlertLog(Base):
     channel: Mapped[AlertChannel] = mapped_column(Enum(AlertChannel))
     message: Mapped[str] = mapped_column(Text)
     sent_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    severity: Mapped[str] = mapped_column(String(20), default="info")
     acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)

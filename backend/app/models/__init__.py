@@ -7,6 +7,8 @@ from app.models.budget_rule import BudgetRule, RuleType, RuleAction
 from app.models.rule_evaluation import RuleEvaluation, EvaluationResult
 from app.models.pause_log import PauseLog
 from app.models.alert_log import AlertLog, AlertType, AlertChannel
+from app.models.alert_config import AlertConfig, AlertSeverity
+from app.models.report import Report, ReportType, ReportFormat
 from app.models.simulation_state import SimulationState
 from app.models.simulation_log import SimulationLog
 
@@ -30,6 +32,11 @@ __all__ = [
     "AlertLog",
     "AlertType",
     "AlertChannel",
+    "AlertConfig",
+    "AlertSeverity",
+    "Report",
+    "ReportType",
+    "ReportFormat",
     "SimulationState",
     "SimulationLog",
 ]
