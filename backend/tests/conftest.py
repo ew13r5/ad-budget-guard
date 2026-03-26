@@ -104,3 +104,16 @@ def alembic_config(postgres_url):
     cfg.set_main_option("script_location",
         os.path.join(os.path.dirname(os.path.dirname(__file__)), "alembic"))
     return cfg
+
+
+@pytest.fixture
+def redis_client():
+    """Redis client connected to Redis service, uses test DB and flushes after each test."""
+    import redis
+
+    host = os.environ.get("REDIS_TEST_HOST", "adbudget-redis")
+    port = int(os.environ.get("REDIS_TEST_PORT", "6379"))
+    client = redis.Redis(host=host, port=port, db=15, decode_responses=True)
+    client.flushdb()
+    yield client
+    client.flushdb()

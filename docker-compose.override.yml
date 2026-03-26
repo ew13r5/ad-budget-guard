@@ -1,4 +1,7 @@
 services:
   adbudget-api:
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
     environment:
       - DEBUG=true
