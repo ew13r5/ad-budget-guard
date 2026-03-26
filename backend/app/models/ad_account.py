@@ -47,6 +47,7 @@ class AdAccount(Base):
     currency: Mapped[str] = mapped_column(String(3), default="USD")
     timezone: Mapped[str] = mapped_column(String(64), default="UTC")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    auto_resume_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     users: Mapped[List["User"]] = relationship(
         secondary=user_accounts, back_populates="accounts"

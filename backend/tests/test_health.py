@@ -32,7 +32,7 @@ async def test_health_returns_200():
 
 
 @pytest.mark.asyncio
-async def test_stub_routes_return_501():
+async def test_stub_routes_return_501_or_auth():
     from httpx import AsyncClient, ASGITransport
     from app.main import app
 
@@ -40,17 +40,18 @@ async def test_stub_routes_return_501():
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as client:
+        # Rules and monitoring now require auth (implemented in split 09)
         response = await client.get("/api/rules")
-        assert response.status_code == 501
+        assert response.status_code in (401, 422)
 
         response = await client.get("/api/monitoring/spend")
-        assert response.status_code == 501
+        assert response.status_code in (401, 422)
 
         response = await client.get("/api/alerts")
-        assert response.status_code == 501
+        assert response.status_code in (401, 501)
 
         response = await client.post("/api/simulation/start")
-        assert response.status_code == 501
+        assert response.status_code in (401, 501)
 
 
 @pytest.mark.asyncio

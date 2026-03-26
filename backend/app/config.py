@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     encryption_key: str
     # Default mode for new accounts
     ad_data_mode: Literal["simulation", "meta_sandbox", "production"] = "simulation"
+    # Monitoring
+    consecutive_threshold: int = 2
+    forecast_lookback_hours: int = 4
+    anomaly_lookback_days: int = 7
+    monitoring_lock_ttl: int = 280
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

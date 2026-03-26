@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -11,7 +12,18 @@ from app.logging import setup_logging
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    # Start monitoring WebSocket pubsub subscriber
+    from app.api.websocket_monitoring import monitoring_pubsub_subscriber
+    settings = get_settings()
+    monitoring_task = asyncio.create_task(
+        monitoring_pubsub_subscriber(settings.redis_url)
+    )
     yield
+    monitoring_task.cancel()
+    try:
+        await monitoring_task
+    except asyncio.CancelledError:
+        pass
 
 
 app = FastAPI(title="Ad Budget Guard", lifespan=lifespan)
@@ -26,6 +38,9 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+
+from app.api.websocket_monitoring import ws_monitoring_router
+app.include_router(ws_monitoring_router)
 
 
 @app.get("/health")

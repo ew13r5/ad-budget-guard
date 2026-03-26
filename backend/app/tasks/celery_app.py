@@ -41,6 +41,10 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.reporting.generate_daily_report",
         "schedule": crontab(hour=8, minute=0),  # daily 08:00 UTC (split 05)
     },
+    "auto-resume-daily": {
+        "task": "app.tasks.auto_resume.auto_resume_paused",
+        "schedule": crontab(hour=0, minute=5),  # daily 00:05 UTC
+    },
 }
 
 

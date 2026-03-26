@@ -17,6 +17,12 @@ class RuleCreateRequest(BaseModel):
     campaign_id: Optional[UUID] = None
 
 
+class RuleUpdateRequest(BaseModel):
+    threshold: Optional[Decimal] = None
+    action: Optional[RuleAction] = None
+    is_active: Optional[bool] = None
+
+
 class RuleResponse(BaseModel):
     id: UUID
     account_id: UUID
@@ -33,3 +39,20 @@ class RuleResponse(BaseModel):
 class RuleListResponse(BaseModel):
     rules: List[RuleResponse]
     total: int
+
+
+class MonitoringSpendResponse(BaseModel):
+    account_id: UUID
+    total_spend_today: Decimal
+    total_spend_month: Decimal
+    last_updated: datetime
+
+
+class MonitoringStatusResponse(BaseModel):
+    account_id: UUID
+    active_rules: int
+    triggered_rules: int
+    paused_campaigns: int
+    forecast_eod: Optional[Decimal] = None
+    warning_level: Optional[str] = None
+    last_check: Optional[datetime] = None
