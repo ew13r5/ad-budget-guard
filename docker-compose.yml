@@ -1,43 +1,54 @@
+name: ad-budget-guard
+
 services:
-  postgres:
+  adbudget-db:
     image: postgres:16-alpine
+    container_name: adbudget-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-adbudget}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: ${POSTGRES_DB:-adbudget}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - adbudget-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-adbudget}", "-d", "${POSTGRES_DB:-adbudget}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    ports:
+      - "5490:5432"
 
-  redis:
+  adbudget-redis:
     image: redis:7-alpine
+    container_name: adbudget-redis
     command: redis-server --appendonly yes
     volumes:
-      - redis-data:/data
+      - adbudget-redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 3
+    ports:
+      - "6390:6379"
 
-  web:
+  adbudget-api:
     build:
       context: ./backend
+    container_name: adbudget-api
     entrypoint: ./entrypoint.sh
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
-      - "8000:8000"
+      - "8020:8000"
     env_file: .env
     depends_on:
-      postgres:
+      adbudget-db:
         condition: service_healthy
-      redis:
+      adbudget-redis:
         condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -45,36 +56,30 @@ services:
       retries: 5
       start_period: 30s
 
-  celery-worker:
+  adbudget-worker:
     build:
       context: ./backend
+    container_name: adbudget-worker
     entrypoint: ./entrypoint-worker.sh
     command: celery -A app.tasks.celery_app worker --loglevel=info
     env_file: .env
     depends_on:
-      web:
+      adbudget-api:
         condition: service_healthy
 
-  celery-beat:
+  adbudget-beat:
     build:
       context: ./backend
+    container_name: adbudget-beat
     entrypoint: ./entrypoint-worker.sh
     command: celery -A app.tasks.celery_app beat --loglevel=info
     env_file: .env
     depends_on:
-      redis:
+      adbudget-redis:
         condition: service_healthy
-      web:
+      adbudget-api:
         condition: service_healthy
-
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - web
 
 volumes:
-  postgres-data:
-  redis-data:
+  adbudget-pgdata:
+  adbudget-redisdata:

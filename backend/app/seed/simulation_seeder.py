@@ -21,7 +21,8 @@ SEED_NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
 
 def _deterministic_id(name: str) -> uuid.UUID:
-    return uuid.uuid5(SEED_NAMESPACE, name)
+    raw = uuid.uuid5(SEED_NAMESPACE, name)
+    return uuid.UUID(str(raw))
 
 
 @dataclass
@@ -34,65 +35,72 @@ class SeedResult:
 
 ACCOUNT_DEFINITIONS = [
     {
-        "name": "TechStart Agency",
-        "meta_account_id": "sim_act_techstart",
+        "name": "Client-Alpha — E-commerce Brand",
+        "meta_account_id": "sim_act_847291035",
         "campaigns": [
-            {"name": "Brand Awareness - US", "daily_budget": Decimal("200.00")},
-            {"name": "Brand Awareness - EU", "daily_budget": Decimal("180.00")},
-            {"name": "Retargeting - Website Visitors", "daily_budget": Decimal("150.00")},
-            {"name": "Retargeting - Cart Abandoners", "daily_budget": Decimal("120.00")},
-            {"name": "Lookalike - Top Purchasers", "daily_budget": Decimal("250.00")},
-            {"name": "App Install - iOS", "daily_budget": Decimal("300.00")},
-            {"name": "App Install - Android", "daily_budget": Decimal("280.00")},
-            {"name": "Lead Gen - Whitepaper", "daily_budget": Decimal("100.00")},
-            {"name": "Lead Gen - Webinar", "daily_budget": Decimal("90.00")},
-            {"name": "Video Views - Product Demo", "daily_budget": Decimal("160.00")},
-            {"name": "Engagement - Social Posts", "daily_budget": Decimal("75.00")},
-            {"name": "Conversions - Free Trial", "daily_budget": Decimal("350.00")},
-            {"name": "Conversions - Premium", "daily_budget": Decimal("400.00")},
-            {"name": "Dynamic Ads - Catalog", "daily_budget": Decimal("220.00")},
-            {"name": "Reach - Local Markets", "daily_budget": Decimal("130.00")},
+            {"name": "Summer Sale 2024 — US", "daily_budget": Decimal("40.00")},
+            {"name": "Retargeting — Cart Abandoners", "daily_budget": Decimal("25.00")},
+            {"name": "Brand Awareness — 25-34", "daily_budget": Decimal("30.00")},
+            {"name": "Lookalike — Top Customers", "daily_budget": Decimal("20.00")},
+            {"name": "DPA — Product Catalog", "daily_budget": Decimal("15.00")},
+            {"name": "Retargeting — Page Visitors", "daily_budget": Decimal("20.00")},
+            {"name": "Holiday Promo — Black Friday", "daily_budget": Decimal("25.00")},
+            {"name": "Video Views — Brand Story", "daily_budget": Decimal("15.00")},
+            {"name": "Lead Gen — Free Consultation", "daily_budget": Decimal("10.00")},
+            {"name": "App Install — iOS", "daily_budget": Decimal("20.00")},
         ],
     },
     {
-        "name": "ShopNow E-commerce",
-        "meta_account_id": "sim_act_shopnow",
+        "name": "Client-Beta — SaaS Startup",
+        "meta_account_id": "sim_act_293847561",
         "campaigns": [
-            {"name": "Spring Sale - All Products", "daily_budget": Decimal("180.00")},
-            {"name": "Flash Deal - Electronics", "daily_budget": Decimal("150.00")},
-            {"name": "Retargeting - Browse Abandon", "daily_budget": Decimal("120.00")},
-            {"name": "Lookalike - Repeat Buyers", "daily_budget": Decimal("200.00")},
-            {"name": "New Arrivals - Fashion", "daily_budget": Decimal("100.00")},
-            {"name": "Clearance - Winter Stock", "daily_budget": Decimal("80.00")},
-            {"name": "Bundle Promo - Accessories", "daily_budget": Decimal("90.00")},
-            {"name": "Gift Guide - Holiday", "daily_budget": Decimal("160.00")},
-            {"name": "VIP Customers - Exclusive", "daily_budget": Decimal("250.00")},
-            {"name": "Cart Recovery - High Value", "daily_budget": Decimal("140.00")},
+            {"name": "Lead Gen — Free Trial", "daily_budget": Decimal("50.00")},
+            {"name": "Webinar Signup — Q4", "daily_budget": Decimal("40.00")},
+            {"name": "Retargeting — Demo Viewers", "daily_budget": Decimal("35.00")},
+            {"name": "Lookalike — Paying Users", "daily_budget": Decimal("45.00")},
+            {"name": "Brand Awareness — Tech Founders", "daily_budget": Decimal("30.00")},
+            {"name": "Content Promo — Blog Posts", "daily_budget": Decimal("25.00")},
+            {"name": "App Install — Desktop", "daily_budget": Decimal("60.00")},
+            {"name": "Conversions — Annual Plan", "daily_budget": Decimal("65.00")},
         ],
     },
     {
-        "name": "NewBrand Startup",
-        "meta_account_id": "sim_act_newbrand",
+        "name": "Client-Gamma — Real Estate Agency",
+        "meta_account_id": "sim_act_571829364",
         "campaigns": [
-            {"name": "Launch Campaign - Awareness", "daily_budget": Decimal("100.00")},
-            {"name": "Early Adopters - Signup", "daily_budget": Decimal("80.00")},
-            {"name": "Influencer Collab - Reach", "daily_budget": Decimal("60.00")},
-            {"name": "Product Hunt - Traffic", "daily_budget": Decimal("50.00")},
-            {"name": "Beta Users - Conversions", "daily_budget": Decimal("70.00")},
+            {"name": "New Listings — Miami", "daily_budget": Decimal("30.00")},
+            {"name": "Open House — Weekend", "daily_budget": Decimal("25.00")},
+            {"name": "Luxury Properties — High Net Worth", "daily_budget": Decimal("40.00")},
+            {"name": "First-Time Buyers — Education", "daily_budget": Decimal("20.00")},
+            {"name": "Retargeting — Property Viewers", "daily_budget": Decimal("25.00")},
+            {"name": "Agent Branding — Local", "daily_budget": Decimal("15.00")},
+            {"name": "Virtual Tours — Video Views", "daily_budget": Decimal("20.00")},
+            {"name": "Seller Leads — Home Valuation", "daily_budget": Decimal("25.00")},
         ],
     },
     {
-        "name": "MegaCorp Enterprise",
-        "meta_account_id": "sim_act_megacorp",
+        "name": "Client-Delta — Restaurant Chain",
+        "meta_account_id": "sim_act_684920173",
         "campaigns": [
-            {"name": "Enterprise Solutions - Awareness", "daily_budget": Decimal("500.00")},
-            {"name": "B2B Lead Gen - Decision Makers", "daily_budget": Decimal("450.00")},
-            {"name": "Retargeting - Demo Requests", "daily_budget": Decimal("350.00")},
-            {"name": "Account Based - Fortune 500", "daily_budget": Decimal("400.00")},
-            {"name": "Webinar Series - Thought Leadership", "daily_budget": Decimal("300.00")},
-            {"name": "Content Syndication - Whitepapers", "daily_budget": Decimal("250.00")},
-            {"name": "Event Promo - Annual Conference", "daily_budget": Decimal("200.00")},
-            {"name": "Brand Safety - Premium", "daily_budget": Decimal("380.00")},
+            {"name": "Lunch Specials — Local", "daily_budget": Decimal("20.00")},
+            {"name": "Delivery Promo — DoorDash", "daily_budget": Decimal("25.00")},
+            {"name": "Happy Hour — 21-35", "daily_budget": Decimal("15.00")},
+            {"name": "Catering — Corporate", "daily_budget": Decimal("30.00")},
+            {"name": "New Menu Launch — Awareness", "daily_budget": Decimal("25.00")},
+            {"name": "Weekend Brunch — Families", "daily_budget": Decimal("20.00")},
+        ],
+    },
+    {
+        "name": "Client-Epsilon — Online Education",
+        "meta_account_id": "sim_act_395718264",
+        "campaigns": [
+            {"name": "Course Launch — Python Bootcamp", "daily_budget": Decimal("80.00")},
+            {"name": "Retargeting — Free Lesson Viewers", "daily_budget": Decimal("60.00")},
+            {"name": "Lookalike — Course Completers", "daily_budget": Decimal("100.00")},
+            {"name": "Webinar Funnel — Data Science", "daily_budget": Decimal("120.00")},
+            {"name": "Brand Awareness — Career Changers", "daily_budget": Decimal("70.00")},
+            {"name": "Scholarship Program — Students", "daily_budget": Decimal("40.00")},
+            {"name": "Corporate Training — B2B", "daily_budget": Decimal("90.00")},
         ],
     },
 ]
@@ -146,8 +154,13 @@ class SimulationSeeder:
                 self.session.add(campaign)
                 campaigns_created += 1
 
+            # Flush accounts + campaigns so FKs exist for snapshots
+            self.session.flush()
+
+            for camp_def in acct_def["campaigns"]:
+                camp_id = _deterministic_id(f"campaign:{acct_def['name']}:{camp_def['name']}")
                 # Generate 30 days of hourly snapshots
-                snapshots = self._generate_snapshots(campaign.id, camp_def["daily_budget"])
+                snapshots = self._generate_snapshots(camp_id, camp_def["daily_budget"])
                 for batch_start in range(0, len(snapshots), 1000):
                     batch = snapshots[batch_start:batch_start + 1000]
                     self.session.bulk_save_objects(batch)
