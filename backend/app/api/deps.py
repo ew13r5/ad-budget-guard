@@ -88,10 +88,16 @@ def require_role(min_role: UserRole) -> Callable:
     return _check_role
 
 
-def get_provider_for_account(account: AdAccount, user: User) -> AdDataProvider:
+def get_provider_for_account(
+    account: AdAccount,
+    user: User,
+    db_session: AsyncSession = None,
+    redis_client=None,
+) -> AdDataProvider:
     """Create provider based on account.mode, injecting user token for Meta API."""
     if account.mode == AccountMode.simulation:
-        raise NotImplementedError("SimulationProvider not yet implemented (split 02)")
+        from app.providers.simulation_provider import SimulationProvider
+        return SimulationProvider(db=db_session, redis=redis_client)
 
     from app.providers.meta_api_provider import MetaApiProvider
     return MetaApiProvider(access_token=user.access_token or "")
