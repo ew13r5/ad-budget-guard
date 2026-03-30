@@ -5,7 +5,7 @@ export function useAccounts() {
   return useQuery({
     queryKey: ['accounts'],
     queryFn: fetchAccounts,
-    staleTime: Infinity,
+    staleTime: 60_000,
   })
 }
 
