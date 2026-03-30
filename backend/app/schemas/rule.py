@@ -5,14 +5,14 @@ from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.budget_rule import RuleType, RuleAction
 
 
 class RuleCreateRequest(BaseModel):
     rule_type: RuleType
-    threshold: Decimal
+    threshold: Decimal = Field(gt=0, le=10_000_000)
     action: RuleAction = RuleAction.soft_pause
     campaign_id: Optional[UUID] = None
 

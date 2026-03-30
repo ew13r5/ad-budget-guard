@@ -5,15 +5,23 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 # ---------- AlertConfig ----------
 class AlertConfigRequest(BaseModel):
-    channel: str
-    destination: str
+    channel: str = Field(max_length=50)
+    destination: str = Field(max_length=500)
     is_enabled: bool = True
-    severity_filter: str = "info"
+    severity_filter: str = Field(default="info", max_length=20)
+
+    @field_validator("destination")
+    @classmethod
+    def validate_destination(cls, v, info):
+        channel = info.data.get("channel", "")
+        if channel == "email" and "@" not in v:
+            raise ValueError("Invalid email address")
+        return v
 
 
 class AlertConfigResponse(BaseModel):
@@ -55,6 +63,6 @@ class AlertConfigListResponse(BaseModel):
 
 class SendTestAlertRequest(BaseModel):
     account_id: UUID
-    channel: str
-    destination: str
-    message: str = "This is a test alert from Ad Budget Guard"
+    channel: str = Field(max_length=50)
+    destination: str = Field(max_length=500)
+    message: str = Field(default="This is a test alert from Ad Budget Guard", max_length=2000)

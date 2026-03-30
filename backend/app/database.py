@@ -31,6 +31,8 @@ def get_async_engine() -> AsyncEngine:
             pool_size=10,
             max_overflow=20,
             pool_recycle=3600,
+            pool_pre_ping=True,
+            pool_timeout=30,
         )
     return _async_engine
 
@@ -44,6 +46,8 @@ def get_sync_engine() -> Engine:
             pool_size=5,
             max_overflow=10,
             pool_recycle=3600,
+            pool_pre_ping=True,
+            pool_timeout=30,
         )
     return _sync_engine
 
