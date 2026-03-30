@@ -1,6 +1,7 @@
 """Simulation control API endpoints."""
 from __future__ import annotations
 
+import asyncio
 from typing import Optional
 from uuid import UUID
 
@@ -26,16 +27,25 @@ from app.schemas.simulation import (
     SimulationTriggerAnomalyRequest,
     SimulationTriggerAnomalyResponse,
 )
+from app.simulator.constants import (
+    FORCED_ANOMALY_TTL,
+    SIM_FORCED_ANOMALY_PREFIX,
+    SIM_SPEND_PREFIX,
+)
 from app.simulator.scenarios import get_scenario_by_name
+from app.simulator.state import SimulationStateManager
 
 router = APIRouter()
 
 
-def _get_engine():
-    """Get simulator engine instance. Placeholder — wired in section-12."""
-    from app.simulator.engine import SimulatorEngine
-    # This will be replaced with proper DI in section-12
-    raise HTTPException(status_code=503, detail="Simulation engine not initialized")
+def _get_state_manager() -> SimulationStateManager:
+    """Create a StateManager connected to Redis."""
+    import redis as sync_redis
+    from app.config import get_settings
+
+    settings = get_settings()
+    client = sync_redis.from_url(settings.redis_url)
+    return SimulationStateManager(redis=client)
 
 
 @router.post("/start", response_model=SimulationStartResponse)
@@ -44,24 +54,26 @@ async def start_simulation(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        engine = _get_engine()
-    except HTTPException:
-        # Return mock response until engine is wired
-        return SimulationStartResponse(status="running", scenario=request.scenario, speed=1)
+        get_scenario_by_name(request.scenario)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown scenario: {request.scenario}")
 
-    try:
-        engine.start(scenario=request.scenario)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-    state = engine.state_manager.get_simulation_state()
-    return SimulationStartResponse(status=state.status, scenario=state.scenario, speed=state.speed)
+    sm = _get_state_manager()
+    await asyncio.to_thread(
+        sm.set_simulation_state, status="running", scenario=request.scenario,
+    )
+    state = await asyncio.to_thread(sm.get_simulation_state)
+    return SimulationStartResponse(
+        status=state.status, scenario=state.scenario, speed=state.speed,
+    )
 
 
 @router.post("/pause", response_model=SimulationPauseResponse)
 async def pause_simulation(
     current_user: User = Depends(get_current_user),
 ):
+    sm = _get_state_manager()
+    await asyncio.to_thread(sm.set_simulation_state, status="paused")
     return SimulationPauseResponse(status="paused")
 
 
@@ -70,6 +82,8 @@ async def set_speed(
     request: SimulationSpeedRequest,
     current_user: User = Depends(get_current_user),
 ):
+    sm = _get_state_manager()
+    await asyncio.to_thread(sm.set_simulation_state, speed=request.multiplier)
     return SimulationSpeedResponse(speed=request.multiplier)
 
 
@@ -83,6 +97,8 @@ async def set_scenario(
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Unknown scenario: {request.scenario}")
 
+    sm = _get_state_manager()
+    await asyncio.to_thread(sm.set_simulation_state, scenario=request.scenario)
     return SimulationScenarioResponse(scenario=request.scenario, status="running")
 
 
@@ -91,6 +107,9 @@ async def trigger_anomaly(
     request: SimulationTriggerAnomalyRequest,
     current_user: User = Depends(get_current_user),
 ):
+    sm = _get_state_manager()
+    key = f"{SIM_FORCED_ANOMALY_PREFIX}{request.campaign_id}"
+    await asyncio.to_thread(sm.redis.setex, key, FORCED_ANOMALY_TTL, "1")
     return SimulationTriggerAnomalyResponse(triggered=True, campaign_id=request.campaign_id)
 
 
@@ -98,6 +117,8 @@ async def trigger_anomaly(
 async def reset_simulation(
     current_user: User = Depends(get_current_user),
 ):
+    sm = _get_state_manager()
+    await asyncio.to_thread(sm.reset_state)
     return SimulationResetResponse(status="stopped", message="Simulation reset complete")
 
 
@@ -146,11 +167,23 @@ async def get_simulation_log(
 async def get_status(
     current_user: User = Depends(get_current_user),
 ):
+    sm = _get_state_manager()
+    state = await asyncio.to_thread(sm.get_simulation_state)
+
+    # Count active campaigns
+    try:
+        keys = await asyncio.to_thread(
+            sm.redis.keys, f"{SIM_SPEND_PREFIX}*",
+        )
+        campaign_count = len(keys)
+    except Exception:
+        campaign_count = 0
+
     return SimulationStatusResponse(
-        status="stopped",
-        sim_time=None,
-        speed=1,
-        scenario="normal",
-        tick_count=0,
-        campaign_count=0,
+        status=state.status,
+        sim_time=state.sim_time,
+        speed=state.speed,
+        scenario=state.scenario,
+        tick_count=state.tick_count,
+        campaign_count=campaign_count,
     )
