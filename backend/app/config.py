@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     meta_app_id: str
     meta_app_secret: str
     meta_api_version: str = "v19.0"
+    facebook_redirect_uri: str = "http://localhost:3020/auth/callback"
     # Auth
     secret_key: str
     encryption_key: str
@@ -31,12 +32,21 @@ class Settings(BaseSettings):
     # Alerts
     alert_cooldown_seconds: int = 300
     telegram_bot_token: str = ""
+    # SMTP Email
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_use_ssl: bool = False
     # Reports
     report_logo_path: str = ""
     report_agency_name: str = "Ad Budget Guard"
     report_storage_dir: str = "/app/reports"
     # Google Sheets
     google_service_account_json: str = ""
+    # Sentry
+    sentry_dsn: str = ""
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

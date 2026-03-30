@@ -99,7 +99,7 @@ class AlertManager:
             if channel == "telegram":
                 self._handle_telegram(config.destination, account_id, alert_type, severity, message)
             elif channel == "email":
-                self._handle_email(config.destination, message)
+                self._handle_email(config.destination, message, alert_type, severity, str(account_id))
             else:
                 logger.warning("unknown_channel", extra={"channel": channel})
 
@@ -162,11 +162,30 @@ class AlertManager:
         except Exception:
             logger.exception("telegram_dispatch_failed")
 
-    def _handle_email(self, destination: str, message: str) -> None:
-        logger.info("email_alert_not_implemented", extra={
-            "destination": destination,
-            "message": message[:200],
-        })
+    def _handle_email(
+        self,
+        destination: str,
+        message: str,
+        alert_type: str = "",
+        severity: str = "info",
+        account_name: str = "",
+    ) -> None:
+        try:
+            from app.alerts.email_sender import EmailSender
+            from app.config import get_settings
+
+            sender = EmailSender(get_settings())
+            subject = f"[{severity.upper()}] Ad Budget Guard — {alert_type}"
+            sender.send_alert(
+                to=destination,
+                subject=subject,
+                alert_type=alert_type,
+                message=message,
+                severity=severity,
+                account_name=account_name,
+            )
+        except Exception:
+            logger.exception("email_dispatch_failed")
 
     def send_alert(
         self,

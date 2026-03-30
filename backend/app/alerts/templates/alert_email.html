@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f7;">
+    <tr>
+      <td align="center" style="padding: 24px 16px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: {% if severity == 'critical' %}#dc2626{% elif severity == 'warning' %}#f59e0b{% else %}#3b82f6{% endif %}; padding: 20px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="color: #ffffff; font-size: 20px; font-weight: bold;">
+                    &#x1f6e1; Ad Budget Guard
+                  </td>
+                  <td align="right" style="color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                    {{ severity }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <span style="display: inline-block; background-color: {% if severity == 'critical' %}#fef2f2{% elif severity == 'warning' %}#fffbeb{% else %}#eff6ff{% endif %}; color: {% if severity == 'critical' %}#991b1b{% elif severity == 'warning' %}#92400e{% else %}#1e40af{% endif %}; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600;">
+                      {{ alert_type }}
+                    </span>
+                  </td>
+                </tr>
+                {% if account_name %}
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #6b7280;">
+                    Account
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 20px; font-size: 16px; color: #111827; font-weight: 600;">
+                    {{ account_name }}
+                  </td>
+                </tr>
+                {% endif %}
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #6b7280;">
+                    Message
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 24px; font-size: 15px; color: #374151; line-height: 1.6;">
+                    {{ message }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #e5e7eb; padding-top: 16px; font-size: 12px; color: #9ca3af;">
+                    {{ timestamp }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 16px 24px; text-align: center;">
+              <span style="font-size: 12px; color: #9ca3af;">
+                Ad Budget Guard &mdash; Budget Control System for Meta Ads
+              </span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

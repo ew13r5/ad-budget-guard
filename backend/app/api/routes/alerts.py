@@ -192,7 +192,17 @@ async def send_test_alert(
             )
         return {"status": "sent", "channel": body.channel}
     elif body.channel == "email":
-        return {"status": "not_implemented", "channel": body.channel}
+        from app.alerts.email_sender import EmailSender
+        from app.config import get_settings
+
+        sender = EmailSender(get_settings())
+        success = sender.send_test(body.destination)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Failed to send test email. Check SMTP configuration.",
+            )
+        return {"status": "sent", "channel": body.channel}
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
