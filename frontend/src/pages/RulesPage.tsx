@@ -1,10 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import {
   ShieldCheck,
   Plus,
-  ToggleLeft,
-  ToggleRight,
   Edit3,
   Trash2,
   DollarSign,
@@ -17,8 +15,10 @@ interface Rule {
   id: string
   name: string
   type: string
+  typeLabel: string
   condition: string
   action: string
+  actionType: string
   isActive: boolean
   icon: typeof DollarSign
   color: string
@@ -30,8 +30,10 @@ const mockRules: Rule[] = [
     id: 'r1',
     name: 'Daily Budget Limit Guard',
     type: 'daily_limit',
+    typeLabel: 'Daily',
     condition: 'When daily spend exceeds 95% of budget',
     action: 'Pause campaign and send alert',
+    actionType: 'Soft Pause',
     isActive: true,
     icon: DollarSign,
     color: 'text-emerald-400',
@@ -41,8 +43,10 @@ const mockRules: Rule[] = [
     id: 'r2',
     name: 'Monthly Budget Cap',
     type: 'monthly_limit',
+    typeLabel: 'Monthly',
     condition: 'When monthly spend exceeds $5,000 per account',
     action: 'Pause all campaigns in account',
+    actionType: 'Hard Pause',
     isActive: true,
     icon: Calendar,
     color: 'text-blue-400',
@@ -52,8 +56,10 @@ const mockRules: Rule[] = [
     id: 'r3',
     name: 'Hourly Spend Rate Monitor',
     type: 'hourly_rate',
+    typeLabel: 'Hourly',
     condition: 'When hourly spend rate exceeds 2x the daily average',
     action: 'Reduce budget by 50% and alert',
+    actionType: 'Soft Pause',
     isActive: true,
     icon: Clock,
     color: 'text-purple-400',
@@ -63,8 +69,10 @@ const mockRules: Rule[] = [
     id: 'r4',
     name: 'Anomaly Detection',
     type: 'anomaly',
+    typeLabel: 'Anomaly',
     condition: 'When spend pattern deviates 3 sigma from historical norm',
     action: 'Hard pause campaign, require manual review',
+    actionType: 'Hard Pause',
     isActive: false,
     icon: Zap,
     color: 'text-amber-400',
@@ -73,6 +81,7 @@ const mockRules: Rule[] = [
 ]
 
 export default function RulesPage() {
+  useEffect(() => { document.title = 'Budget Rules | Ad Budget Guard' }, [])
   const [rules, setRules] = useState(mockRules)
 
   function toggleRule(id: string) {
@@ -119,11 +128,16 @@ export default function RulesPage() {
                   <rule.icon className={`h-5 w-5 ${rule.color}`} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-semibold text-slate-100">{rule.name}</h3>
                     <StatusBadge
                       variant={rule.isActive ? 'success' : 'stopped'}
                       label={rule.isActive ? 'Active' : 'Disabled'}
+                    />
+                    <StatusBadge variant="info" label={rule.typeLabel} />
+                    <StatusBadge
+                      variant={rule.actionType === 'Hard Pause' ? 'danger' : 'warning'}
+                      label={rule.actionType}
                     />
                   </div>
                   <p className="mt-1.5 text-xs text-slate-400">
@@ -140,14 +154,16 @@ export default function RulesPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleRule(rule.id)}
-                  className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-[#1a1a2e] hover:text-slate-200"
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none"
+                  style={{ backgroundColor: rule.isActive ? '#10b981' : '#334155' }}
                   title={rule.isActive ? 'Disable' : 'Enable'}
+                  role="switch"
+                  aria-checked={rule.isActive}
                 >
-                  {rule.isActive ? (
-                    <ToggleRight className="h-5 w-5 text-emerald-400" />
-                  ) : (
-                    <ToggleLeft className="h-5 w-5" />
-                  )}
+                  <span
+                    className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
+                    style={{ transform: rule.isActive ? 'translateX(22px)' : 'translateX(4px)' }}
+                  />
                 </button>
                 <button className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-[#1a1a2e] hover:text-slate-200">
                   <Edit3 className="h-4 w-4" />

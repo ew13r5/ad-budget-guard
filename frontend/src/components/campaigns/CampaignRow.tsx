@@ -20,16 +20,16 @@ export function CampaignRow({ name, status, dailyBudget, spend, spendPercent, fo
         <StatusBadge variant={status} label={status} />
       </td>
       <td className="px-4 py-3 text-right text-sm text-slate-300">
-        ${dailyBudget.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        ${dailyBudget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
       <td className="px-4 py-3 text-right text-sm text-slate-300">
-        ${spend.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        ${spend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
       <td className="w-40 px-4 py-3">
         <SpendProgressBar percent={spendPercent} showLabel={false} />
       </td>
       <td className="px-4 py-3 text-right text-sm text-slate-400">
-        ${forecast.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        ${forecast.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
     </tr>
   )

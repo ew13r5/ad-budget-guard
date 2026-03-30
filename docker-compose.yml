@@ -80,6 +80,15 @@ services:
       adbudget-api:
         condition: service_healthy
 
+  adbudget-frontend:
+    build:
+      context: ./frontend
+    container_name: adbudget-frontend
+    depends_on:
+      - adbudget-api
+    ports:
+      - "3020:80"
+
 volumes:
   adbudget-pgdata:
   adbudget-redisdata:

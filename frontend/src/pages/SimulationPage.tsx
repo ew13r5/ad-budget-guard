@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { SpeedSelector } from '@/components/simulation/SpeedSelector'
 import { ScenarioDropdown } from '@/components/simulation/ScenarioDropdown'
 import { SimulationLog } from '@/components/simulation/SimulationLog'
@@ -23,16 +23,18 @@ import {
   FlaskConical,
 } from 'lucide-react'
 
-// Demo state
+// Demo state — most recent first
 const initialLogEntries = [
-  { id: '1', time: '14:23:01', type: 'tick', message: 'Simulation tick #142 processed' },
-  { id: '2', time: '14:23:05', type: 'anomaly', message: 'Anomaly detected: spend rate 3.2x above normal for campaign "Summer Sale - Broad"', campaignId: 'c1' },
-  { id: '3', time: '14:23:05', type: 'pause', message: 'Campaign "Summer Sale - Broad" auto-paused by rule "Daily Limit Guard"', campaignId: 'c1' },
-  { id: '4', time: '14:23:10', type: 'tick', message: 'Simulation tick #143 processed' },
-  { id: '5', time: '14:23:15', type: 'anomaly', message: 'Budget threshold 95% reached for "Product Catalog - DPA"', campaignId: 'c5' },
-  { id: '6', time: '14:23:15', type: 'pause', message: 'Campaign "Product Catalog - DPA" paused - soft limit exceeded', campaignId: 'c5' },
-  { id: '7', time: '14:23:20', type: 'tick', message: 'Simulation tick #144 processed' },
-  { id: '8', time: '14:23:25', type: 'trigger', message: 'Manual anomaly triggered on "Competitor Targeting"', campaignId: 'c10' },
+  { id: '10', time: '14:32:05', type: 'tick', message: 'Simulation tick #152 processed — 10 campaigns evaluated, 8 active' },
+  { id: '9', time: '14:30:18', type: 'warning', message: 'Client-Alpha approaching monthly cap: $4,820 / $5,000 (96.4%)', campaignId: 'c1' },
+  { id: '8', time: '14:28:42', type: 'alert', message: 'Telegram alert sent to @adops_team: Client-Delta budget exceeded 5.9x' },
+  { id: '7', time: '14:27:01', type: 'trigger', message: 'Rule "Anomaly Detection" triggered — spend deviation 4.1 sigma on "Flash Sale Rush"', campaignId: 'c10' },
+  { id: '6', time: '14:25:30', type: 'pause', message: 'Campaign "Product Catalog - DPA" hard paused — daily budget 97.7% consumed', campaignId: 'c5' },
+  { id: '5', time: '14:24:15', type: 'spend', message: 'Client-Delta hourly spend rate: $148.67/hr (normal: $25/hr) — 5.9x spike detected' },
+  { id: '4', time: '14:23:05', type: 'alert', message: 'Email alert queued: "Budget Exceeded" for Client-Gamma ($214.50 / $200.00)' },
+  { id: '3', time: '14:21:50', type: 'trigger', message: 'Rule "Daily Budget Limit Guard" fired for "Summer Sale - Broad" at 89.6%', campaignId: 'c1' },
+  { id: '2', time: '14:20:30', type: 'tick', message: 'Simulation tick #148 processed — budget recalculation complete' },
+  { id: '1', time: '14:18:00', type: 'spend', message: 'Client-Beta spend update: $89.40 / $350.00 (25.5%) — on track, no action needed' },
 ]
 
 export default function SimulationPage() {
@@ -42,6 +44,8 @@ export default function SimulationPage() {
   const [tickCount, setTickCount] = useState(144)
   const [logEntries, setLogEntries] = useState(initialLogEntries)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => { document.title = 'Simulation | Ad Budget Guard' }, [])
 
   const addLogEntry = useCallback((type: string, message: string) => {
     const now = new Date()
@@ -217,6 +221,14 @@ export default function SimulationPage() {
             Reset
           </button>
         </div>
+
+        {/* Scenario description */}
+        <p className="mt-3 text-xs italic text-slate-500">
+          {scenario === 'normal' && 'Steady spend within budget limits with natural hourly variation'}
+          {scenario === 'approaching_limit' && 'Spend gradually approaches 80-95% of daily budgets'}
+          {scenario === 'budget_exceeded' && 'One or more accounts will exceed their daily budget'}
+          {scenario === 'hack_simulation' && 'Simulates a sudden 10x spend spike \u2014 triggers anomaly detection'}
+        </p>
       </div>
 
       {/* Event log */}

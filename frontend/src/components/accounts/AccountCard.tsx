@@ -59,7 +59,7 @@ export function AccountCard({
               ${spend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <span className="text-xs text-slate-500">
-              / ${budget.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+              / ${budget.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </div>
           <div className="flex items-center gap-1 text-xs text-slate-500">

@@ -1,8 +1,11 @@
 """Seed data generator for simulation environment."""
 from __future__ import annotations
 
+import logging
 import sys
 import uuid
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -268,4 +271,4 @@ if __name__ == "__main__":
     with session_factory() as session:
         seeder = SimulationSeeder(session)
         result = seeder.seed(reset="--reset" in sys.argv)
-        print(f"Seeded: {result}")
+        logger.info("seed_complete", result=result)

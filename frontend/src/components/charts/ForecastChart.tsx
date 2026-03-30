@@ -59,6 +59,7 @@ export function ForecastChart({ data, budget }: ForecastChartProps) {
             tick={{ fontSize: 11, fill: '#64748b' }}
             axisLine={{ stroke: '#1a1a2e' }}
             tickLine={false}
+            label={{ value: 'Hour', position: 'insideBottomRight', offset: -5, fill: '#64748b', fontSize: 11 }}
           />
           <YAxis
             tick={{ fontSize: 11, fill: '#64748b' }}
@@ -75,7 +76,10 @@ export function ForecastChart({ data, budget }: ForecastChartProps) {
               color: '#e2e8f0',
               fontSize: '12px',
             }}
-            formatter={(value) => [`$${Number(value).toFixed(2)}`, '']}
+            formatter={(value, name) => [
+              `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              name === 'actual' ? 'Actual Spend' : 'Forecast',
+            ]}
           />
           <ReferenceLine
             y={threshold80}

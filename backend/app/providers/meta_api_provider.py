@@ -1,4 +1,22 @@
-"""MetaApiProvider — concrete AdDataProvider using facebook-business SDK."""
+"""MetaApiProvider — concrete AdDataProvider using facebook-business SDK.
+
+Architecture: sync-in-thread pattern
+    This class wraps the synchronous facebook-business SDK for use in both
+    async (FastAPI) and sync (Celery) contexts.
+
+    Async callers (FastAPI routes, async services):
+        Call public async methods (get_accounts, get_current_spend, etc.).
+        These use asyncio.to_thread() internally to run sync SDK calls in a
+        thread pool worker, keeping the event loop free.
+
+    Sync callers (Celery tasks, CLI scripts):
+        Call the _*_sync methods directly (e.g. _get_current_spend_sync).
+        While prefixed with underscore, they are the intended entry points
+        for sync contexts.
+
+    time.sleep() in _call_with_retry is safe because it only runs inside
+    asyncio.to_thread() worker threads when called from async paths.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -32,6 +50,13 @@ class MetaApiPermissionError(Exception):
 
 
 class MetaApiProvider(AdDataProvider):
+    """Wraps facebook-business SDK with retry logic and dual sync/async support.
+
+    Stateful: lazily initializes the Facebook SDK API object via _get_api().
+    Thread safety: each instance should be used from a single context (one per
+    request or task). The lazy _api init is not thread-safe by design.
+    """
+
     def __init__(
         self,
         access_token: str,
@@ -57,7 +82,18 @@ class MetaApiProvider(AdDataProvider):
         return self._api
 
     def _call_with_retry(self, func, *args, max_retries: int = 5, **kwargs) -> Any:
-        """Execute SDK call with exponential backoff on rate limit errors."""
+        """Execute SDK call with exponential backoff on rate limit errors.
+
+        Retry strategy:
+            - Rate limit errors (codes 613, 17): retry up to max_retries with
+              delay = 2^attempt + random(0,1) seconds.
+            - Token expired (code 190): raises TokenExpiredError immediately.
+            - Permission error (code 10): raises MetaApiPermissionError immediately.
+            - Unknown errors: retry up to 3 times maximum.
+
+        time.sleep() is intentional and safe here — this method only runs
+        inside asyncio.to_thread() worker threads when called from async paths.
+        """
         from facebook_business.exceptions import FacebookRequestError
 
         for attempt in range(max_retries + 1):
@@ -107,6 +143,7 @@ class MetaApiProvider(AdDataProvider):
         return Decimal(rows[0].get("spend", "0"))
 
     async def get_accounts(self) -> list:
+        """Fetch ad accounts. Runs sync SDK call in thread pool via asyncio.to_thread()."""
         return await asyncio.to_thread(self._get_accounts_sync)
 
     def _get_accounts_sync(self) -> list:
@@ -116,6 +153,7 @@ class MetaApiProvider(AdDataProvider):
         return []
 
     async def get_campaigns(self, account_id: UUID) -> list:
+        """Fetch campaigns for account. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._get_campaigns_sync, account_id)
 
     def _get_campaigns_sync(self, account_id: UUID) -> list:
@@ -128,6 +166,7 @@ class MetaApiProvider(AdDataProvider):
         return list(result)
 
     async def get_current_spend(self, account_id: UUID) -> SpendData:
+        """Fetch current spend data. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._get_current_spend_sync, account_id)
 
     def _get_current_spend_sync(self, account_id: UUID) -> SpendData:
@@ -141,6 +180,7 @@ class MetaApiProvider(AdDataProvider):
         )
 
     async def get_campaign_spend(self, campaign_id: UUID) -> CampaignSpendData:
+        """Fetch campaign spend data. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._get_campaign_spend_sync, campaign_id)
 
     def _get_campaign_spend_sync(self, campaign_id: UUID) -> CampaignSpendData:
@@ -165,6 +205,7 @@ class MetaApiProvider(AdDataProvider):
         )
 
     async def pause_campaign(self, campaign_id: UUID) -> ActionResult:
+        """Pause a campaign. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._pause_campaign_sync, campaign_id)
 
     def _pause_campaign_sync(self, campaign_id: UUID) -> ActionResult:
@@ -182,6 +223,7 @@ class MetaApiProvider(AdDataProvider):
             return ActionResult(success=False, message=str(e), campaign_id=campaign_id)
 
     async def resume_campaign(self, campaign_id: UUID) -> ActionResult:
+        """Resume a paused campaign. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._resume_campaign_sync, campaign_id)
 
     def _resume_campaign_sync(self, campaign_id: UUID) -> ActionResult:
@@ -199,6 +241,7 @@ class MetaApiProvider(AdDataProvider):
             return ActionResult(success=False, message=str(e), campaign_id=campaign_id)
 
     async def get_insights(self, account_id: UUID, date_range: DateRange) -> InsightsData:
+        """Fetch historical spend insights. Runs sync SDK call in thread pool."""
         return await asyncio.to_thread(self._get_insights_sync, account_id, date_range)
 
     def _get_insights_sync(self, account_id: UUID, date_range: DateRange) -> InsightsData:

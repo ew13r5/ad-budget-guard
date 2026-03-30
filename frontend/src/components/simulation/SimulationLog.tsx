@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { StatusBadge } from '@/components/common/StatusBadge'
-import { AlertTriangle, Pause, Play, Zap, Clock } from 'lucide-react'
+import { AlertTriangle, Pause, Play, Zap, Clock, Bell, DollarSign, ShieldAlert } from 'lucide-react'
 
 interface LogEntry {
   id: string
@@ -20,6 +20,9 @@ const typeIcons: Record<string, typeof AlertTriangle> = {
   resume: Play,
   trigger: Zap,
   tick: Clock,
+  alert: Bell,
+  spend: DollarSign,
+  warning: ShieldAlert,
 }
 
 const typeVariants: Record<string, string> = {
@@ -28,6 +31,9 @@ const typeVariants: Record<string, string> = {
   resume: 'success',
   trigger: 'danger',
   tick: 'info',
+  alert: 'warning',
+  spend: 'info',
+  warning: 'danger',
 }
 
 export function SimulationLog({ entries }: SimulationLogProps) {
