@@ -70,29 +70,45 @@ class ForecastService:
 
         sorted_times = sorted(time_totals.keys())
 
-        # Calculate hourly rate
+        # Calculate weighted hourly rate (recent 2 hours weighted 2x)
         if len(sorted_times) < 2:
             hourly_rate = Decimal("0")
             forecast_eod = current_spend.total_spend_today
         else:
-            earliest = sorted_times[0]
-            latest = sorted_times[-1]
-            hours_elapsed = Decimal(str((latest - earliest).total_seconds())) / Decimal("3600")
+            # Weighted average: recent 2 hours get 2x weight
+            recent_cutoff = now_utc - timedelta(hours=2)
+            weighted_deltas = []
+            for i in range(1, len(sorted_times)):
+                prev_t = sorted_times[i - 1]
+                curr_t = sorted_times[i]
+                dt_hours = Decimal(str((curr_t - prev_t).total_seconds())) / Decimal("3600")
+                if dt_hours <= 0:
+                    continue
+                delta_spend = time_totals[curr_t] - time_totals[prev_t]
+                rate = delta_spend / dt_hours
+                weight = Decimal("2") if curr_t >= recent_cutoff else Decimal("1")
+                weighted_deltas.append((rate, weight))
 
-            if hours_elapsed <= 0:
-                hourly_rate = Decimal("0")
-                forecast_eod = current_spend.total_spend_today
+            if weighted_deltas:
+                total_weight = sum(w for _, w in weighted_deltas)
+                hourly_rate = sum(r * w for r, w in weighted_deltas) / total_weight
             else:
-                total_earliest = time_totals[earliest]
-                total_latest = time_totals[latest]
-                hourly_rate = (total_latest - total_earliest) / hours_elapsed
+                earliest = sorted_times[0]
+                latest = sorted_times[-1]
+                hours_elapsed = Decimal(str((latest - earliest).total_seconds())) / Decimal("3600")
+                hourly_rate = (time_totals[latest] - time_totals[earliest]) / hours_elapsed if hours_elapsed > 0 else Decimal("0")
 
-                # Calculate remaining hours in account timezone
-                now_local = now_utc.astimezone(account_tz)
-                midnight = now_local.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-                remaining_hours = Decimal(str((midnight - now_local).total_seconds())) / Decimal("3600")
+            # Day-of-week adjustment: weekends typically have lower spend
+            now_local = now_utc.astimezone(account_tz)
+            is_weekend = now_local.weekday() >= 5
+            if is_weekend:
+                hourly_rate = hourly_rate * Decimal("0.8")
 
-                forecast_eod = current_spend.total_spend_today + (hourly_rate * remaining_hours)
+            # Calculate remaining hours in account timezone
+            midnight = now_local.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+            remaining_hours = Decimal(str((midnight - now_local).total_seconds())) / Decimal("3600")
+
+            forecast_eod = current_spend.total_spend_today + (hourly_rate * remaining_hours)
 
         # Warning level
         if daily_budget <= 0:
