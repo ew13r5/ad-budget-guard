@@ -57,10 +57,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.auto_resume.auto_resume_paused",
         "schedule": crontab(hour=0, minute=5),  # daily 00:05 UTC
     },
+    "cleanup-old-snapshots": {
+        "task": "app.tasks.cleanup.cleanup_old_snapshots",
+        "schedule": crontab(hour=3, minute=0, day_of_week="sunday"),  # Sunday 03:00 UTC
+    },
 }
-
-
-@celery_app.task(name="app.tasks.token_health.check_token_health")
-def check_token_health():
-    """Check all user tokens, refresh those expiring within 7 days."""
-    pass
