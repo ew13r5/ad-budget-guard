@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class FacebookAuthRequest(BaseModel):
     code: str
+    state: Optional[str] = None
 
 
 class TokenResponse(BaseModel):

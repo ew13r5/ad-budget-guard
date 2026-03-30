@@ -186,3 +186,25 @@ export interface WsSimEvent {
 }
 
 export type WsMessage = WsStateSnapshot | WsTickUpdate | WsSimEvent
+
+// --- OAuth Discovery/Import types ---
+
+export interface DiscoveredAccount {
+  id: string
+  meta_account_id: string
+  name: string
+  currency: string
+  timezone: string
+  is_new: boolean
+}
+
+export interface DiscoverAccountsResponse {
+  accounts: DiscoveredAccount[]
+  total: number
+}
+
+export interface ImportCampaignsResponse {
+  imported: number
+  updated: number
+  total: number
+}

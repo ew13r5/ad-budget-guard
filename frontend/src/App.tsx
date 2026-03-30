@@ -8,11 +8,15 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Toaster } from 'sonner'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
+const AccountsPage = lazy(() => import('@/pages/AccountsPage'))
 const AccountDetailPage = lazy(() => import('@/pages/AccountDetailPage'))
 const RulesPage = lazy(() => import('@/pages/RulesPage'))
 const SimulationPage = lazy(() => import('@/pages/SimulationPage'))
 const ActivityPage = lazy(() => import('@/pages/ActivityPage'))
+const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
+const AuthCallbackPage = lazy(() => import('@/pages/AuthCallbackPage'))
+const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 
 export default function App() {
   return (
@@ -21,12 +25,36 @@ export default function App() {
         <WebSocketProvider>
           <BrowserRouter>
             <Routes>
+              <Route
+                path="auth/callback"
+                element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <AuthCallbackPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="onboarding"
+                element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <OnboardingPage />
+                  </Suspense>
+                }
+              />
               <Route element={<DashboardLayout />}>
                 <Route
                   index
                   element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <DashboardPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="accounts"
+                  element={
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AccountsPage />
                     </Suspense>
                   }
                 />
@@ -59,6 +87,14 @@ export default function App() {
                   element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <ActivityPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="notifications"
+                  element={
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <NotificationsPage />
                     </Suspense>
                   }
                 />

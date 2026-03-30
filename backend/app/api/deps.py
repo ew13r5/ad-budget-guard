@@ -100,4 +100,14 @@ def get_provider_for_account(
         return SimulationProvider(db=db_session, redis=redis_client)
 
     from app.providers.meta_api_provider import MetaApiProvider
-    return MetaApiProvider(access_token=user.access_token or "")
+    from app.services.crypto import decrypt_token
+    from app.config import get_settings
+
+    settings = get_settings()
+    token = user.access_token or ""
+    if token:
+        try:
+            token = decrypt_token(token, settings.encryption_key)
+        except ValueError:
+            token = ""
+    return MetaApiProvider(access_token=token)
